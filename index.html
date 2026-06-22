@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculo de Banco de Baterías — Sistema Off-Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --verde: #2D4A27;
+    --verde-medio: #4A6741;
+    --verde-claro: #7A9171;
+    --verde-bg: #E8F0E5;
+    --beige: #E8E4D4;
+    --arena: #C8BC9E;
+    --azul: #185FA5;
+    --azul-claro: #E6F1FB;
+    --amber: #BA7517;
+    --amber-claro: #FAEEDA;
+    --teal: #0F6E56;
+    --teal-claro: #E1F5EE;
+    --gris: #5F5E5A;
+    --gris-claro: #F1EFE8;
+    --texto: #1a1a18;
+    --texto-sec: #5F5E5A;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--beige);
+    color: var(--texto);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--verde);
+    color: #fff;
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 4px solid var(--verde-claro);
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .logo-area { display: flex; flex-direction: column; gap: 2px; }
+  .logo-cspm {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .15em;
+    color: var(--verde-claro);
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+  }
+  .header-meta {
+    text-align: right;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+  }
+  .header-meta strong { color: rgba(255,255,255,0.9); }
+  .subtitulo {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* PROGRESS */
+  .progress-section {
+    background: var(--verde-medio);
+    padding: .75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+  }
+  .dots {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .dot {
+    width: 32px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: background .2s;
+    border: none;
+    padding: 0;
+  }
+  .dot.done { background: var(--teal-claro); }
+  .dot.active { background: #fff; }
+  .dot:hover { background: rgba(255,255,255,0.6); }
+
+  /* MAIN CONTENT */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* STEP CARD */
+  .step-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--arena);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(45,74,39,0.06);
+  }
+  .step-header {
+    background: var(--verde-bg);
+    border-bottom: 1px solid var(--arena);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .step-num {
+    background: var(--verde);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-titulo {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--verde);
+    line-height: 1.3;
+  }
+  .step-body { padding: 1.5rem; }
+
+  /* CONCEPTO */
+  .concepto {
+    background: var(--azul-claro);
+    border-left: 3px solid var(--azul);
+    border-radius: 0 8px 8px 0;
+    padding: .9rem 1.1rem;
+    margin-bottom: 1.25rem;
+    font-size: 14px;
+    color: #042C53;
+    line-height: 1.7;
+  }
+  .concepto strong { font-weight: 600; }
+
+  /* FORMULA */
+  .formula-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--verde-medio);
+    margin-bottom: 6px;
+  }
+  .formula-box {
+    background: var(--gris-claro);
+    border: 1px solid var(--arena);
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    color: var(--texto);
+    line-height: 1.9;
+    margin-bottom: 1.25rem;
+  }
+
+  /* TABLA */
+  .tabla-wrap { overflow-x: auto; margin-bottom: 1.25rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    background: var(--gris-claro);
+    color: var(--texto-sec);
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--arena);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gris-claro);
+    color: var(--texto);
+  }
+  tr.total td {
+    background: var(--verde-bg);
+    font-weight: 600;
+    color: var(--verde);
+    border-top: 2px solid var(--arena);
+  }
+  tr.highlight td {
+    background: var(--teal-claro);
+    color: var(--teal);
+    font-weight: 500;
+  }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    letter-spacing: .04em;
+  }
+  .tag-aprox { background: var(--amber-claro); color: var(--amber); }
+  .tag-validado { background: var(--teal-claro); color: var(--teal); }
+
+  /* AVISO */
+  .aviso {
+    background: var(--amber-claro);
+    border: 1px solid #e8b86d;
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+    font-size: 13px;
+    color: #633806;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  /* RESULTADO */
+  .resultado {
+    background: var(--teal-claro);
+    border: 1px solid #5DCAA5;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--teal);
+    line-height: 1.5;
+  }
+
+  /* RESUMEN GRID */
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .resumen-card {
+    background: var(--gris-claro);
+    border: 1px solid var(--arena);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+  }
+  .resumen-card .r-label {
+    font-size: 11px;
+    color: var(--texto-sec);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+  }
+  .resumen-card .r-valor {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--texto);
+  }
+  .resumen-card.destacado {
+    background: var(--verde-bg);
+    border-color: var(--verde-claro);
+  }
+  .resumen-card.destacado .r-label { color: var(--verde-medio); }
+  .resumen-card.destacado .r-valor { color: var(--verde); font-size: 22px; }
+
+  /* NAVEGACION */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .nav-counter {
+    font-size: 13px;
+    color: var(--texto-sec);
+  }
+  .nav-btns { display: flex; gap: 10px; }
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 22px;
+    border-radius: 8px;
+    border: 1.5px solid var(--arena);
+    background: #fff;
+    color: var(--texto);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn:hover { background: var(--gris-claro); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--verde);
+    color: #fff;
+    border-color: var(--verde);
+  }
+  .btn.primary:hover { background: var(--verde-medio); }
+
+  /* INFO ADICIONAL */
+  .nota-tecnica {
+    font-size: 13px;
+    color: var(--texto-sec);
+    line-height: 1.7;
+    margin-top: .75rem;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--verde);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    font-size: 12px;
+    line-height: 2;
+    padding: 1.5rem 2rem;
+    margin-top: 2rem;
+  }
+  footer strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+  footer .footer-divider {
+    display: inline-block;
+    margin: 0 .5rem;
+    opacity: .4;
+  }
+  footer .dnda {
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .main { padding: 1.25rem 1rem; }
+    .step-body { padding: 1.1rem 1rem; }
+    .header { padding: 1.25rem 1rem 1rem; }
+    .header-meta { text-align: left; }
+    .header-top { flex-direction: column; }
+    .progress-section { padding: .75rem 1rem; }
+    .nav { flex-direction: column; align-items: stretch; }
+    .nav-btns { justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo-area">
+      <span class="logo-cspm">ISFT Angaco · Tecnicatura Superior en Gestión de Energías Renovables</span>
+      <h1>Cálculo de Banco de Baterías<br>para Sistema Off-Grid</h1>
+      <p class="subtitulo">Guía paso a paso · Nivel introductorio · LiFePO4 48V</p>
+    </div>
+    <div class="header-meta">
+      <strong>ISFT Angaco · San Juan</strong><br>
+      Ing. Germán Golder<br>
+      2026
+    </div>
+  </div>
+</div>
+
+<div class="progress-section">
+  <span class="progress-label">Progreso:</span>
+  <div class="dots" id="dots"></div>
+</div>
+
+<div class="main">
+  <div id="contenido"></div>
+
+  <div class="nav">
+    <span class="nav-counter" id="counter"></span>
+    <div class="nav-btns">
+      <button class="btn" id="btn-prev" onclick="cambiar(-1)">← Anterior</button>
+      <button class="btn primary" id="btn-next" onclick="cambiar(1)">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>
+    <strong>© 2026 Ing. Germán Ariel Golder Hecker</strong>
+    <span class="footer-divider">·</span>
+    Cálculo de Sistema Off-Grid — Material Didáctico
+  </div>
+  <div style="margin-top:6px;">
+    ISFT Angaco · Tecnicatura Superior en Gestión de Energías Renovables · San Juan, Argentina
+  </div>
+  <div style="margin-top:8px;">
+    <span class="dnda">Obra registrada ante la Dirección Nacional del Derecho de Autor (DNDA) — República Argentina</span>
+  </div>
+  <div style="margin-top:8px; font-size:11px; opacity:.5;">
+    Prohibida su reproducción total o parcial sin autorización expresa del autor.
+  </div>
+</footer>
+
+<script>
+const pasos = [
+  {
+    num: 1,
+    titulo: "Calcular la energía diaria consumida",
+    concepto: `Primero necesitamos saber <strong>cuánta energía gasta la vivienda por día</strong>. Para eso multiplicamos la potencia de cada aparato (en Watts) por las horas que funciona. El resultado se expresa en <strong>Wh (Watt-hora)</strong>.`,
+    formula: `Energía (Wh) = Potencia (W) × Horas de uso por día`,
+    contenido: `
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Carga</th>
+              <th>Potencia (W)</th>
+              <th>Horas / día</th>
+              <th>Energía (Wh/día)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>TV</td><td>80</td><td>12</td><td>960</td></tr>
+            <tr><td>Heladera</td><td>200</td><td>24</td><td>4.800</td></tr>
+            <tr><td>2 A/C</td><td>7.000</td><td>8</td><td>56.000</td></tr>
+            <tr><td>Estufa</td><td>1.500</td><td>8</td><td>12.000</td></tr>
+            <tr><td>Horno</td><td>2.000</td><td>4</td><td>8.000</td></tr>
+            <tr><td>TermoTanque</td><td>3.000</td><td>8</td><td>24.000</td></tr>
+            <tr><td>Iluminación</td><td>200</td><td>6</td><td>1.200</td></tr>
+            <tr><td>Router</td><td>20</td><td>24</td><td>480</td></tr>
+            <tr class="total"><td colspan="3">TOTAL</td><td>107.440 Wh/día</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="aviso">⚠ <strong>Nota académica:</strong> El A/C, el termotanque y la estufa son cargas térmicas muy grandes. En un sistema off-grid real, estas se resolverían con gas, no con electricidad solar. Este ejercicio es didáctico — calculamos igual para aprender el procedimiento.</div>
+    `,
+    resultado: "✓ Energía diaria total = 107.440 Wh/día = 107,44 kWh/día"
+  },
+  {
+    num: 2,
+    titulo: "Corregir por eficiencia del inversor",
+    concepto: `Las baterías almacenan energía en <strong>corriente continua (CC)</strong>. Los electrodomésticos funcionan con <strong>corriente alterna (CA)</strong>. El inversor hace esa conversión, pero pierde algo de energía en el proceso. Si la eficiencia es del 90%, por cada 100 Wh que queremos usar, las baterías tienen que entregar 111 Wh.`,
+    formula: `Energía real del banco = Consumo diario ÷ Eficiencia del inversor`,
+    contenido: `
+      <span class="tag tag-aprox">⚠ Valor aproximado — verificar con el inversor elegido</span>
+      <div class="formula-box">
+Eficiencia del inversor = 0,90 (90% — valor típico de mercado)
+
+107.440 Wh ÷ 0,90 = 119.378 Wh
+      </div>
+      <p class="nota-tecnica">Los inversores de calidad tienen eficiencias entre 90% y 97%. Siempre conviene verificar en la ficha técnica del equipo que se vaya a instalar. A mayor eficiencia, menor capacidad de banco necesaria.</p>
+    `,
+    resultado: "✓ Energía real que el banco debe entregar = 119.378 Wh/día"
+  },
+  {
+    num: 3,
+    titulo: "Definir días de autonomía",
+    concepto: `Los <strong>días de autonomía</strong> son la cantidad de días que el sistema puede funcionar <strong>sin recibir sol</strong> — por ejemplo, durante días nublados o lluviosos. A más días de autonomía elegidos, más baterías se necesitan. Es una decisión de diseño.`,
+    formula: `Energía para autonomía = Energía diaria (corregida) × Días sin sol`,
+    contenido: `
+      <span class="tag tag-aprox">⚠ Valor de diseño — depende del clima y criterio del proyectista</span>
+      <div class="formula-box">
+Días de autonomía elegidos = 2 días
+
+119.378 Wh × 2 días = 238.756 Wh
+      </div>
+      <p class="nota-tecnica">Para San Juan, con alta irradiación solar (≈ 5,5 horas pico solar/día), 2 días es el valor que se usa en ejercicios académicos. En zonas con peor recurso solar o en instalaciones críticas se pueden diseñar 3 o más días de autonomía.</p>
+    `,
+    resultado: "✓ Energía a almacenar = 238.756 Wh (para 2 días sin sol)"
+  },
+  {
+    num: 4,
+    titulo: "Corregir por Profundidad de Descarga (DoD)",
+    concepto: `Las baterías <strong>no se pueden descargar hasta el 0%</strong> sin dañarse o acortar su vida útil. El fabricante indica el porcentaje máximo de descarga permitido: ese valor se llama <strong>DoD (Depth of Discharge = Profundidad de Descarga)</strong>. Si el DoD es 80%, significa que solo podemos usar el 80% de la capacidad real de la batería.`,
+    formula: `Capacidad total del banco = Energía necesaria ÷ DoD`,
+    contenido: `
+      <span class="tag tag-validado">✓ Valor validado para tecnología LiFePO4</span>
+      <div class="formula-box">
+DoD de LiFePO4 = 0,80 (80%)
+
+238.756 Wh ÷ 0,80 = 298.445 Wh
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr><th>Tecnología</th><th>DoD recomendado</th><th>Banco necesario</th><th>Ciclos de vida aprox.</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Plomo-ácido</td><td>50%</td><td>477.512 Wh</td><td>~500</td></tr>
+            <tr class="highlight"><td><strong>LiFePO4 ✓</strong></td><td><strong>80%</strong></td><td><strong>298.445 Wh</strong></td><td><strong>3.000–5.000</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="nota-tecnica">Con LiFePO4 el banco resulta un 37% más pequeño que con plomo-ácido, gracias al mayor DoD permitido. Los ciclos de vida son aproximados — verificar siempre con la ficha técnica del fabricante.</p>
+    `,
+    resultado: "✓ Capacidad total del banco necesaria = 298.445 Wh ≈ 298,4 kWh"
+  },
+  {
+    num: 5,
+    titulo: "Definir tensión del banco y convertir a Ah",
+    concepto: `Las baterías se comercializan con una capacidad expresada en <strong>Amperios-hora (Ah)</strong>. Para pasar de Wh a Ah necesitamos definir la <strong>tensión (voltaje) del banco</strong>. Para sistemas grandes se usa <strong>48V</strong> porque permite usar cables más finos, reduce pérdidas y es el estándar de los inversores de media y alta potencia.`,
+    formula: `Capacidad en Ah = Energía total (Wh) ÷ Tensión del banco (V)`,
+    contenido: `
+      <span class="tag tag-validado">✓ Tensión estándar para sistemas de esta escala</span>
+      <div class="formula-box">
+Tensión del banco = 48 V
+
+298.445 Wh ÷ 48 V = 6.218 Ah
+      </div>
+      <p class="nota-tecnica">Este resultado — 6.218 Ah a 48V — es la capacidad total que debe tener el banco de baterías. En el siguiente paso dividimos esa cifra entre la capacidad de cada batería para saber cuántas unidades se necesitan.</p>
+    `,
+    resultado: "✓ Capacidad del banco = 6.218 Ah a 48V"
+  },
+  {
+    num: 6,
+    titulo: "Calcular la cantidad de baterías",
+    concepto: `Elegimos baterías <strong>LiFePO4 de 48V / 100Ah</strong>, que es el formato más común en el mercado solar actual. Cada unidad aporta 100 Ah al banco. Dividimos la capacidad total necesaria entre la capacidad de cada batería y <strong>siempre redondeamos hacia arriba</strong>.`,
+    formula: `Cantidad de baterías = Capacidad total del banco (Ah) ÷ Capacidad por batería (Ah)`,
+    contenido: `
+      <span class="tag tag-aprox">⚠ Formato comercial típico — verificar disponibilidad en mercado local</span>
+      <div class="formula-box">
+Batería elegida: LiFePO4 48V / 100Ah  (= 4.800 Wh por unidad)
+
+6.218 Ah ÷ 100 Ah = 62,18  →  se redondea a 63 unidades
+
+Verificación: 63 × 100 Ah = 6.300 Ah × 48 V = 302.400 Wh  ✓
+      </div>
+      <div class="aviso">⚠ <strong>Regla importante:</strong> siempre se redondea hacia arriba. No podemos comprar 62,18 baterías — compramos 63 para no quedarnos cortos de capacidad. Redondear hacia abajo significa que el sistema va a fallar antes de cubrir la autonomía diseñada.</div>
+      <div class="resumen-grid">
+        <div class="resumen-card">
+          <div class="r-label">Energía diaria consumida</div>
+          <div class="r-valor">107,44 kWh/día</div>
+        </div>
+        <div class="resumen-card">
+          <div class="r-label">Eficiencia del inversor</div>
+          <div class="r-valor">90%</div>
+        </div>
+        <div class="resumen-card">
+          <div class="r-label">Autonomía diseñada</div>
+          <div class="r-valor">2 días sin sol</div>
+        </div>
+        <div class="resumen-card">
+          <div class="r-label">Profundidad de descarga</div>
+          <div class="r-valor">80% (DoD LiFePO4)</div>
+        </div>
+        <div class="resumen-card">
+          <div class="r-label">Tensión del banco</div>
+          <div class="r-valor">48 V</div>
+        </div>
+        <div class="resumen-card">
+          <div class="r-label">Capacidad del banco</div>
+          <div class="r-valor">6.300 Ah / 302,4 kWh</div>
+        </div>
+        <div class="resumen-card destacado" style="grid-column: 1 / -1;">
+          <div class="r-label">Resultado final — Banco de baterías</div>
+          <div class="r-valor">63 unidades LiFePO4 48V / 100Ah</div>
+        </div>
+      </div>
+    `,
+    resultado: "✓ Banco de baterías = 63 unidades LiFePO4 de 48V / 100Ah"
+  }
+];
+
+let actual = 0;
+
+function renderDots() {
+  const c = document.getElementById('dots');
+  c.innerHTML = pasos.map((_, i) =>
+    `<button class="dot ${i < actual ? 'done' : i === actual ? 'active' : ''}" onclick="ir(${i})" title="Paso ${i+1}"></button>`
+  ).join('');
+}
+
+function renderPaso() {
+  const p = pasos[actual];
+  document.getElementById('contenido').innerHTML = `
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-num">${p.num}</div>
+        <div class="step-titulo">${p.titulo}</div>
+      </div>
+      <div class="step-body">
+        <div class="concepto">${p.concepto}</div>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula-box">${p.formula}</div>
+        ${p.contenido}
+        <div class="resultado">${p.resultado}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('counter').textContent = `Paso ${actual + 1} de ${pasos.length}`;
+  document.getElementById('btn-prev').disabled = actual === 0;
+  const btnNext = document.getElementById('btn-next');
+  btnNext.disabled = false;
+  btnNext.textContent = actual === pasos.length - 1 ? 'Inicio ↺' : 'Siguiente →';
+  renderDots();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cambiar(dir) {
+  if (dir === 1 && actual === pasos.length - 1) { actual = 0; }
+  else { actual = Math.max(0, Math.min(pasos.length - 1, actual + dir)); }
+  renderPaso();
+}
+
+function ir(i) { actual = i; renderPaso(); }
+
+renderPaso();
+</script>
+</body>
+</html>
