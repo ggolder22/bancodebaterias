@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dimensionamiento Sistema Solar — ISFT Angaco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --verde:#2D4A27;--verde-medio:#4A6741;--verde-claro:#7A9171;--verde-bg:#E8F0E5;
+  --beige:#E8E4D4;--arena:#C8BC9E;
+  --azul:#185FA5;--azul-claro:#E6F1FB;
+  --amber:#BA7517;--amber-claro:#FAEEDA;
+  --teal:#0F6E56;--teal-claro:#E1F5EE;
+  --rojo:#9B1C1C;--rojo-claro:#FEE2E2;
+  --gris-claro:#F1EFE8;--texto:#1a1a18;--texto-sec:#5F5E5A;
+}
+body{font-family:'Inter',sans-serif;background:var(--beige);color:var(--texto);min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--verde);color:#fff;padding:1.5rem 2rem 1.25rem;border-bottom:4px solid var(--verde-claro);}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:.75rem;}
+.logo-inst{font-size:11px;font-weight:600;letter-spacing:.15em;color:var(--verde-claro);text-transform:uppercase;margin-bottom:4px;}
+.header h1{font-size:clamp(1.1rem,3vw,1.5rem);font-weight:600;line-height:1.2;color:#fff;}
+.header-sub{font-size:12.5px;color:rgba(255,255,255,0.65);margin-top:4px;}
+.header-meta{text-align:right;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.8;}
+.header-meta strong{color:rgba(255,255,255,0.9);}
+
+/* TABS */
+.tab-bar{background:var(--verde-medio);display:flex;overflow-x:auto;gap:0;}
+.tab-btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:.7rem 1.4rem;border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;}
+.tab-btn:hover{color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.07);}
+.tab-btn.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,0.1);}
+
+/* PROGRESS (pestañas 1 y 2) */
+.progress-bar{background:rgba(0,0,0,0.12);padding:.6rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.progress-label{font-size:11px;color:rgba(255,255,255,0.7);white-space:nowrap;}
+.dots{display:flex;gap:6px;flex-wrap:wrap;}
+.dot{width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2);cursor:pointer;border:none;padding:0;transition:background .2s;}
+.dot.done{background:var(--teal-claro);}
+.dot.active{background:#fff;}
+
+/* MAIN */
+.main{max-width:880px;margin:0 auto;padding:2rem 1.5rem;}
+
+/* TAB PANELS */
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+
+/* STEP CARD */
+.step-card{background:#fff;border-radius:12px;border:1px solid var(--arena);overflow:hidden;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(45,74,39,0.06);}
+.step-hdr{background:var(--verde-bg);border-bottom:1px solid var(--arena);padding:1.1rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+.step-num{background:var(--verde);color:#fff;font-size:13px;font-weight:600;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-tit{font-size:1rem;font-weight:600;color:var(--verde);line-height:1.3;}
+.step-body{padding:1.4rem 1.5rem;}
+
+/* ELEMENTOS COMUNES */
+.concepto{background:var(--azul-claro);border-left:3px solid var(--azul);border-radius:0 8px 8px 0;padding:.85rem 1rem;margin-bottom:1.1rem;font-size:14px;color:#042C53;line-height:1.7;}
+.concepto strong{font-weight:600;}
+.formula-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--verde-medio);margin-bottom:5px;}
+.formula-box{background:var(--gris-claro);border:1px solid var(--arena);border-radius:8px;padding:.85rem 1rem;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--texto);line-height:1.9;margin-bottom:1.1rem;white-space:pre-wrap;}
+.aviso{background:var(--amber-claro);border:1px solid #e8b86d;border-radius:8px;padding:.85rem 1rem;font-size:13px;color:#633806;line-height:1.6;margin-bottom:1.1rem;}
+.resultado{background:var(--teal-claro);border:1px solid #5DCAA5;border-radius:8px;padding:.9rem 1.1rem;font-size:14.5px;font-weight:600;color:var(--teal);line-height:1.5;}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:8px;letter-spacing:.04em;}
+.tag-aprox{background:var(--amber-claro);color:var(--amber);}
+.tag-ok{background:var(--teal-claro);color:var(--teal);}
+.nota{font-size:13px;color:var(--texto-sec);line-height:1.7;margin-top:.75rem;}
+
+/* TABLAS */
+.tabla-wrap{overflow-x:auto;margin-bottom:1.1rem;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{background:var(--gris-claro);color:var(--texto-sec);font-weight:600;text-align:left;padding:8px 12px;border-bottom:2px solid var(--arena);white-space:nowrap;}
+td{padding:8px 12px;border-bottom:1px solid var(--gris-claro);color:var(--texto);}
+tr.total td{background:var(--verde-bg);font-weight:600;color:var(--verde);border-top:2px solid var(--arena);}
+tr.hl td{background:var(--teal-claro);color:var(--teal);font-weight:500;}
+tr.hl2 td{background:var(--azul-claro);color:var(--azul);font-weight:500;}
+
+/* GRID RESUMEN */
+.r-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:1.1rem;}
+.r-card{background:var(--gris-claro);border:1px solid var(--arena);border-radius:8px;padding:.85rem 1rem;}
+.r-card .rl{font-size:11px;color:var(--texto-sec);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.r-card .rv{font-size:15px;font-weight:600;color:var(--texto);}
+.r-card.dest{background:var(--verde-bg);border-color:var(--verde-claro);}
+.r-card.dest .rl{color:var(--verde-medio);}
+.r-card.dest .rv{color:var(--verde);font-size:20px;}
+.r-card.span-full{grid-column:1/-1;}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:.5rem;}
+.nav-counter{font-size:13px;color:var(--texto-sec);}
+.nav-btns{display:flex;gap:10px;}
+.btn{font-family:'Inter',sans-serif;font-size:14px;font-weight:500;padding:9px 22px;border-radius:8px;border:1.5px solid var(--arena);background:#fff;color:var(--texto);cursor:pointer;transition:all .15s;}
+.btn:hover{background:var(--gris-claro);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn.primary{background:var(--verde);color:#fff;border-color:var(--verde);}
+.btn.primary:hover{background:var(--verde-medio);}
+
+/* ===== CALCULADORA ===== */
+.calc-section{background:#fff;border-radius:12px;border:1px solid var(--arena);margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(45,74,39,0.06);overflow:hidden;}
+.calc-section-hdr{background:var(--verde-bg);border-bottom:1px solid var(--arena);padding:.9rem 1.25rem;font-weight:600;font-size:.95rem;color:var(--verde);display:flex;align-items:center;gap:.6rem;}
+.calc-section-hdr .ico{font-size:1.1rem;}
+.calc-body{padding:1.25rem;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.06em;}
+.field input,.field select{font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;border:1.5px solid var(--arena);border-radius:8px;background:#fff;color:var(--texto);outline:none;transition:border .15s;}
+.field input:focus,.field select:focus{border-color:var(--verde-medio);}
+.field .hint{font-size:11px;color:var(--texto-sec);margin-top:2px;}
+.panel-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;}
+.panel-row input{font-family:'Inter',sans-serif;font-size:13px;padding:8px 10px;border:1.5px solid var(--arena);border-radius:8px;background:#fff;color:var(--texto);outline:none;width:100%;}
+.panel-row input:focus{border-color:var(--verde-medio);}
+.panel-row label{font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;}
+.btn-add{font-family:'Inter',sans-serif;font-size:13px;padding:8px 14px;border-radius:8px;border:1.5px dashed var(--arena);background:transparent;color:var(--verde-medio);cursor:pointer;margin-top:8px;transition:all .15s;}
+.btn-add:hover{background:var(--verde-bg);border-color:var(--verde-claro);}
+.btn-del{background:none;border:none;cursor:pointer;color:#999;font-size:18px;padding:4px 8px;border-radius:6px;transition:color .15s;line-height:1;}
+.btn-del:hover{color:var(--rojo);}
+.btn-calc{font-family:'Inter',sans-serif;font-size:15px;font-weight:600;padding:12px 32px;border-radius:10px;border:none;background:var(--verde);color:#fff;cursor:pointer;transition:background .15s;display:block;width:100%;margin-top:.5rem;}
+.btn-calc:hover{background:var(--verde-medio);}
+
+/* RESULTADOS CALCULADORA */
+.res-block{margin-bottom:1.25rem;}
+.res-titulo{font-size:.9rem;font-weight:600;color:var(--verde);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--verde-bg);}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{background:var(--verde);color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+.comp-table td{padding:9px 12px;border-bottom:1px solid var(--gris-claro);}
+.comp-table tr:nth-child(even) td{background:var(--gris-claro);}
+.comp-table tr.mejor td{background:#DCFCE7;font-weight:500;}
+.comp-table tr.mejor td:first-child::after{content:" ★";color:#16a34a;}
+.badge-mejor{display:inline-block;font-size:10px;font-weight:600;background:#16a34a;color:#fff;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+.total-precio{font-size:18px;font-weight:700;color:var(--verde);}
+.resumen-total{background:var(--verde-bg);border:1px solid var(--verde-claro);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;}
+.rt-titulo{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--verde-medio);margin-bottom:.5rem;}
+.rt-val{font-size:22px;font-weight:700;color:var(--verde);}
+.rt-sub{font-size:12px;color:var(--verde-medio);margin-top:2px;}
+
+/* ERROR */
+.error-box{background:var(--rojo-claro);border:1px solid #FCA5A5;border-radius:8px;padding:.85rem 1rem;font-size:13px;color:var(--rojo);margin-bottom:1rem;}
+
+/* FOOTER */
+footer{background:var(--verde);color:rgba(255,255,255,0.6);text-align:center;font-size:12px;line-height:2;padding:1.5rem 2rem;margin-top:2rem;}
+footer strong{color:rgba(255,255,255,0.9);font-weight:600;}
+footer .sep{display:inline-block;margin:0 .5rem;opacity:.4;}
+footer .dnda{display:inline-block;border:1px solid rgba(255,255,255,0.25);border-radius:4px;padding:1px 8px;font-size:11px;letter-spacing:.06em;margin-top:4px;}
+
+@media(max-width:600px){
+  .main{padding:1.25rem 1rem;}
+  .step-body,.calc-body{padding:1rem;}
+  .header{padding:1.25rem 1rem 1rem;}
+  .header-meta{text-align:left;}
+  .header-top{flex-direction:column;}
+  .nav{flex-direction:column;align-items:stretch;}
+  .nav-btns{justify-content:space-between;}
+  .panel-row{grid-template-columns:1fr 1fr;gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="logo-inst">ISFT Angaco · Tecnicatura Superior en Gestión de Energías Renovables</div>
+      <h1>Dimensionamiento de Sistema Solar</h1>
+      <p class="header-sub">Banco de Baterías · Paneles Solares · Calculadora de Anteproyecto</p>
+    </div>
+    <div class="header-meta">
+      <strong>ISFT Angaco · San Juan</strong><br>
+      Ing. Germán Golder<br>
+      2026
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('tab1',this)">🔋 Banco de Baterías</button>
+  <button class="tab-btn" onclick="showTab('tab2',this)">☀️ Paneles Solares</button>
+  <button class="tab-btn" onclick="showTab('tab3',this)">🧮 Calculadora</button>
+</div>
+
+<!-- ==================== TAB 1: BATERÍAS ==================== -->
+<div id="tab1" class="tab-panel active">
+  <div class="progress-bar" style="background:var(--verde-medio);">
+    <span class="progress-label">Progreso:</span>
+    <div class="dots" id="dots1"></div>
+  </div>
+  <div class="main">
+    <div id="contenido1"></div>
+    <div class="nav">
+      <span class="nav-counter" id="counter1"></span>
+      <div class="nav-btns">
+        <button class="btn" id="prev1" onclick="cambiar(1,-1)">← Anterior</button>
+        <button class="btn primary" id="next1" onclick="cambiar(1,1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: PANELES ==================== -->
+<div id="tab2" class="tab-panel">
+  <div class="progress-bar" style="background:var(--verde-medio);">
+    <span class="progress-label">Progreso:</span>
+    <div class="dots" id="dots2"></div>
+  </div>
+  <div class="main">
+    <div id="contenido2"></div>
+    <div class="nav">
+      <span class="nav-counter" id="counter2"></span>
+      <div class="nav-btns">
+        <button class="btn" id="prev2" onclick="cambiar(2,-1)">← Anterior</button>
+        <button class="btn primary" id="next2" onclick="cambiar(2,1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: CALCULADORA ==================== -->
+<div id="tab3" class="tab-panel">
+  <div class="main">
+
+    <!-- DATOS DEL SISTEMA -->
+    <div class="calc-section">
+      <div class="calc-section-hdr"><span class="ico">⚡</span> Datos del Sistema</div>
+      <div class="calc-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Consumo total diario (kWh/día)</label>
+            <input type="number" id="c_consumo" placeholder="Ej: 10.5" min="0.1" step="0.1">
+            <span class="hint">Sumar potencia × horas de cada carga</span>
+          </div>
+          <div class="field">
+            <label>Tipo de sistema</label>
+            <select id="c_tipo" onchange="toggleOffgrid()">
+              <option value="offgrid">Off-Grid (aislado, con baterías)</option>
+              <option value="ongrid">On-Grid (conectado a red, sin baterías)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>% de cobertura solar</label>
+            <input type="number" id="c_cobertura" value="100" min="10" max="100" step="5">
+            <span class="hint">100% = cubrir todo el consumo con solar</span>
+          </div>
+          <div class="field">
+            <label>HPS de la zona (horas pico solar/día)</label>
+            <input type="number" id="c_hps" value="5.5" min="1" max="9" step="0.1">
+            <span class="hint">San Juan ≈ 5,5 · Buenos Aires ≈ 4,5</span>
+          </div>
+          <div class="field">
+            <label>Eficiencia del inversor (%)</label>
+            <input type="number" id="c_eficInv" value="90" min="70" max="99" step="1">
+            <span class="hint">Verificar en ficha técnica del inversor</span>
+          </div>
+          <div class="field">
+            <label>Factor de pérdidas BOS (%)</label>
+            <input type="number" id="c_bos" value="75" min="50" max="95" step="1">
+            <span class="hint">Cables, temperatura, suciedad — típico 75%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BATERÍAS (solo off-grid) -->
+    <div class="calc-section" id="sec-baterias">
+      <div class="calc-section-hdr"><span class="ico">🔋</span> Configuración de Baterías (Off-Grid)</div>
+      <div class="calc-body">
+        <div class="form-grid" style="margin-bottom:1rem;">
+          <div class="field">
+            <label>Días de autonomía</label>
+            <input type="number" id="c_autonomia" value="2" min="1" max="10" step="1">
+            <span class="hint">Días sin sol que el sistema debe aguantar</span>
+          </div>
+          <div class="field">
+            <label>Tensión del banco (V)</label>
+            <select id="c_tension">
+              <option value="12">12 V</option>
+              <option value="24">24 V</option>
+              <option value="48" selected>48 V</option>
+            </select>
+          </div>
+        </div>
+        <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-sec);margin-bottom:.6rem;">Opciones de batería a comparar</p>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Nombre / Modelo</span>
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Tecnología</span>
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Capacidad (Ah)</span>
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Precio unit. ($)</span>
+          <span></span>
+        </div>
+        <div id="bat-rows"></div>
+        <button class="btn-add" onclick="addBat()">+ Agregar opción de batería</button>
+      </div>
+    </div>
+
+    <!-- PANELES -->
+    <div class="calc-section">
+      <div class="calc-section-hdr"><span class="ico">☀️</span> Opciones de Panel Solar a Comparar</div>
+      <div class="calc-body">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Nombre / Modelo</span>
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Potencia (Wp)</span>
+          <span style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;">Precio unit. ($)</span>
+          <span></span>
+        </div>
+        <div id="pan-rows"></div>
+        <button class="btn-add" onclick="addPan()">+ Agregar opción de panel</button>
+      </div>
+    </div>
+
+    <button class="btn-calc" onclick="calcular()">⚡ Calcular Anteproyecto</button>
+
+    <!-- RESULTADOS -->
+    <div id="resultados" style="display:none;margin-top:1.5rem;">
+      <div class="calc-section">
+        <div class="calc-section-hdr"><span class="ico">📊</span> Resultados del Anteproyecto</div>
+        <div class="calc-body" id="res-contenido"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div>
+    <strong>© 2026 Ing. Germán Ariel Golder Hecker</strong>
+    <span class="sep">·</span>
+    Dimensionamiento Sistema Solar — Material Didáctico
+  </div>
+  <div style="margin-top:4px;">
+    ISFT Angaco · Tecnicatura Superior en Gestión de Energías Renovables · San Juan, Argentina
+  </div>
+  <div style="margin-top:8px;">
+    <span class="dnda">Obra registrada ante la Dirección Nacional del Derecho de Autor (DNDA) — República Argentina</span>
+  </div>
+  <div style="margin-top:6px;font-size:11px;opacity:.5;">
+    Prohibida su reproducción total o parcial sin autorización expresa del autor.
+  </div>
+</footer>
+
+<script>
+// ===================== DATOS PASOS =====================
+
+const pasosBat = [
+  {num:1,titulo:"Calcular la energía diaria consumida",
+   concepto:`Primero necesitamos saber <strong>cuánta energía gasta la vivienda por día</strong>. Para eso multiplicamos la potencia de cada aparato (en Watts) por las horas que funciona. El resultado se expresa en <strong>Wh (Watt-hora)</strong>.`,
+   formula:`Energía (Wh) = Potencia (W) × Horas de uso por día`,
+   contenido:`<div class="tabla-wrap"><table><thead><tr><th>Carga</th><th>Potencia (W)</th><th>Horas/día</th><th>Energía (Wh/día)</th></tr></thead><tbody>
+<tr><td>TV</td><td>80</td><td>12</td><td>960</td></tr>
+<tr><td>Heladera</td><td>200</td><td>24</td><td>4.800</td></tr>
+<tr><td>2 A/C</td><td>7.000</td><td>8</td><td>56.000</td></tr>
+<tr><td>Estufa</td><td>1.500</td><td>8</td><td>12.000</td></tr>
+<tr><td>Horno</td><td>2.000</td><td>4</td><td>8.000</td></tr>
+<tr><td>TermoTanque</td><td>3.000</td><td>8</td><td>24.000</td></tr>
+<tr><td>Iluminación</td><td>200</td><td>6</td><td>1.200</td></tr>
+<tr><td>Router</td><td>20</td><td>24</td><td>480</td></tr>
+<tr class="total"><td colspan="3">TOTAL</td><td>107.440 Wh/día</td></tr>
+</tbody></table></div>
+<div class="aviso">⚠ <strong>Nota académica:</strong> El A/C, el termotanque y la estufa son cargas térmicas muy grandes. En un sistema off-grid real se resolverían con gas. Este ejercicio es didáctico.</div>`,
+   resultado:"✓ Energía diaria total = 107.440 Wh/día = 107,44 kWh/día"},
+
+  {num:2,titulo:"Corregir por eficiencia del inversor",
+   concepto:`Las baterías almacenan energía en <strong>corriente continua (CC)</strong>. Los electrodomésticos funcionan con <strong>corriente alterna (CA)</strong>. El inversor hace esa conversión pero pierde algo de energía. Si la eficiencia es 90%, por cada 100 Wh que queremos usar, las baterías deben entregar 111 Wh.`,
+   formula:`Energía real del banco = Consumo diario ÷ Eficiencia del inversor`,
+   contenido:`<span class="tag tag-aprox">⚠ Valor aproximado — verificar con la ficha técnica del inversor elegido</span>
+<div class="formula-box">Eficiencia del inversor = 0,90 (90% — valor típico de mercado)
+
+107.440 Wh ÷ 0,90 = 119.378 Wh</div>
+<p class="nota">Los inversores de calidad tienen eficiencias entre 90% y 97%. A mayor eficiencia, menor banco necesario.</p>`,
+   resultado:"✓ Energía real que el banco debe entregar = 119.378 Wh/día"},
+
+  {num:3,titulo:"Definir días de autonomía",
+   concepto:`Los <strong>días de autonomía</strong> son los días que el sistema puede funcionar <strong>sin recibir sol</strong> — durante días nublados o de lluvia. A más días de autonomía, más baterías se necesitan. Es una decisión de diseño.`,
+   formula:`Energía para autonomía = Energía diaria (corregida) × Días sin sol`,
+   contenido:`<span class="tag tag-aprox">⚠ Valor de diseño — depende del clima y criterio del proyectista</span>
+<div class="formula-box">Días de autonomía elegidos = 2 días
+
+119.378 Wh × 2 = 238.756 Wh</div>
+<p class="nota">Para San Juan, con alta irradiación (≈ 5,5 HPS/día), 2 días es el valor académico estándar. Zonas con peor recurso solar o instalaciones críticas pueden requerir 3 o más días.</p>`,
+   resultado:"✓ Energía a almacenar = 238.756 Wh (para 2 días sin sol)"},
+
+  {num:4,titulo:"Corregir por Profundidad de Descarga (DoD)",
+   concepto:`Las baterías <strong>no se pueden descargar al 100%</strong> sin dañarse. El fabricante indica el máximo porcentaje de descarga permitido: se llama <strong>DoD (Depth of Discharge)</strong>. Si el DoD es 80%, solo podemos usar el 80% de la capacidad real de la batería.`,
+   formula:`Capacidad total del banco = Energía necesaria ÷ DoD`,
+   contenido:`<span class="tag tag-ok">✓ Valor validado para tecnología LiFePO4</span>
+<div class="formula-box">DoD LiFePO4 = 0,80 (80%)
+
+238.756 Wh ÷ 0,80 = 298.445 Wh</div>
+<div class="tabla-wrap"><table><thead><tr><th>Tecnología</th><th>DoD recomendado</th><th>Banco necesario</th><th>Ciclos aprox.</th></tr></thead><tbody>
+<tr><td>Plomo-ácido</td><td>50%</td><td>477.512 Wh</td><td>~500</td></tr>
+<tr class="hl"><td><strong>LiFePO4 ✓</strong></td><td><strong>80%</strong></td><td><strong>298.445 Wh</strong></td><td><strong>3.000–5.000</strong></td></tr>
+</tbody></table></div>
+<p class="nota">Con LiFePO4 el banco es un 37% más pequeño que con plomo-ácido. Los ciclos de vida son aproximados — siempre verificar con la ficha técnica.</p>`,
+   resultado:"✓ Capacidad total del banco = 298.445 Wh ≈ 298,4 kWh"},
+
+  {num:5,titulo:"Definir tensión del banco y convertir a Ah",
+   concepto:`Las baterías se venden en <strong>Amperios-hora (Ah)</strong>. Para convertir Wh a Ah necesitamos definir la <strong>tensión del banco</strong>. Para sistemas grandes se usa <strong>48V</strong>: permite cables más finos, menos pérdidas, y es el estándar de los inversores de media y alta potencia.`,
+   formula:`Capacidad (Ah) = Energía total (Wh) ÷ Tensión del banco (V)`,
+   contenido:`<span class="tag tag-ok">✓ Tensión estándar para sistemas de esta escala</span>
+<div class="formula-box">Tensión del banco = 48 V
+
+298.445 Wh ÷ 48 V = 6.218 Ah</div>
+<p class="nota">Este es el total de Ah que debe tener el banco. En el paso siguiente dividimos por la capacidad de cada batería para saber cuántas unidades se necesitan.</p>`,
+   resultado:"✓ Capacidad del banco = 6.218 Ah a 48V"},
+
+  {num:6,titulo:"Calcular la cantidad de baterías",
+   concepto:`Usamos baterías <strong>LiFePO4 de 48V / 100Ah</strong>, el formato más común en el mercado solar hoy. Dividimos la capacidad total del banco entre la capacidad de cada batería. <strong>Siempre se redondea hacia arriba.</strong>`,
+   formula:`Cantidad = Capacidad total del banco (Ah) ÷ Capacidad por batería (Ah)`,
+   contenido:`<span class="tag tag-aprox">⚠ Formato comercial típico — verificar disponibilidad en mercado local</span>
+<div class="formula-box">Batería elegida: LiFePO4 48V / 100Ah (= 4.800 Wh por unidad)
+
+6.218 Ah ÷ 100 Ah = 62,18  →  se redondea a 63 unidades
+
+Verificación: 63 × 100 Ah = 6.300 Ah × 48 V = 302.400 Wh ✓</div>
+<div class="aviso">⚠ <strong>Regla importante:</strong> siempre redondear hacia arriba. 62,18 → 63 unidades. Redondear hacia abajo significa que el sistema no va a cubrir la autonomía diseñada.</div>
+<div class="r-grid">
+<div class="r-card"><div class="rl">Energía diaria</div><div class="rv">107,44 kWh/día</div></div>
+<div class="r-card"><div class="rl">Eficiencia inversor</div><div class="rv">90%</div></div>
+<div class="r-card"><div class="rl">Autonomía</div><div class="rv">2 días sin sol</div></div>
+<div class="r-card"><div class="rl">DoD LiFePO4</div><div class="rv">80%</div></div>
+<div class="r-card"><div class="rl">Tensión del banco</div><div class="rv">48 V</div></div>
+<div class="r-card"><div class="rl">Capacidad del banco</div><div class="rv">6.300 Ah / 302,4 kWh</div></div>
+<div class="r-card dest span-full"><div class="rl">Resultado final — Banco de baterías</div><div class="rv">63 unidades LiFePO4 48V / 100Ah</div></div>
+</div>`,
+   resultado:"✓ Banco de baterías = 63 unidades LiFePO4 de 48V / 100Ah"}
+];
+
+const pasosPan = [
+  {num:1,titulo:"Dato de partida: energía diaria consumida",
+   concepto:`Para calcular los paneles, el punto de partida es la <strong>energía diaria que la vivienda consume</strong>. Es el mismo valor que calculamos en la sección de baterías. Los paneles deben generar esa energía cada día para mantener el sistema funcionando.`,
+   formula:`Energía diaria de referencia = 107.440 Wh/día (calculada en pestaña anterior)`,
+   contenido:`<div class="tabla-wrap"><table><thead><tr><th>Carga</th><th>Potencia (W)</th><th>Horas/día</th><th>Energía (Wh/día)</th></tr></thead><tbody>
+<tr><td>TV</td><td>80</td><td>12</td><td>960</td></tr>
+<tr><td>Heladera</td><td>200</td><td>24</td><td>4.800</td></tr>
+<tr><td>2 A/C</td><td>7.000</td><td>8</td><td>56.000</td></tr>
+<tr><td>Estufa</td><td>1.500</td><td>8</td><td>12.000</td></tr>
+<tr><td>Horno</td><td>2.000</td><td>4</td><td>8.000</td></tr>
+<tr><td>TermoTanque</td><td>3.000</td><td>8</td><td>24.000</td></tr>
+<tr><td>Iluminación</td><td>200</td><td>6</td><td>1.200</td></tr>
+<tr><td>Router</td><td>20</td><td>24</td><td>480</td></tr>
+<tr class="total"><td colspan="3">TOTAL</td><td>107.440 Wh/día</td></tr>
+</tbody></table></div>`,
+   resultado:"✓ Energía diaria total = 107.440 Wh/día = 107,44 kWh/día"},
+
+  {num:2,titulo:"Corregir por pérdidas del sistema (factor BOS)",
+   concepto:`Los paneles no transfieren el 100% de su energía al banco de baterías. Hay pérdidas en cables, controlador de carga, temperatura de los paneles y suciedad. El conjunto de estas pérdidas se llama <strong>BOS (Balance of System)</strong>. Se expresa como un factor de eficiencia global.`,
+   formula:`Energía que los paneles deben generar = Consumo diario ÷ Factor BOS`,
+   contenido:`<span class="tag tag-aprox">⚠ Valor aproximado — la bibliografía maneja entre 70% y 80%</span>
+<div class="formula-box">Factor BOS = 0,75 (75% — valor típico para ejercicios didácticos)
+
+107.440 Wh ÷ 0,75 = 143.253 Wh/día</div>
+<p class="nota">El factor BOS agrupa varias pérdidas reales: resistencia de cables (~2-3%), temperatura de los paneles (los paneles pierden eficiencia con el calor, aprox. 0,4%/°C sobre 25°C), suciedad (~2-5%), y pérdidas en el controlador MPPT (~3-5%). En San Juan, con alta temperatura y mucho sol, este factor puede ser algo menor que en zonas más frías.</p>`,
+   resultado:"✓ Energía que los paneles deben generar = 143.253 Wh/día"},
+
+  {num:3,titulo:"Determinar las Horas Pico Solar (HPS)",
+   concepto:`Las <strong>Horas Pico Solar (HPS)</strong> representan la cantidad de horas equivalentes de sol pleno (a 1.000 W/m²) que recibe una zona por día. No son las horas que el sol está visible: son una forma de expresar la energía solar total del día en un número manejable para el cálculo.`,
+   formula:`HPS = Irradiación diaria promedio de la zona (kWh/m²/día)`,
+   contenido:`<span class="tag tag-ok">✓ Valor validado para San Juan, Argentina</span>
+<div class="formula-box">San Juan = 5,5 HPS/día (promedio anual)
+Fuente: datos de irradiación para San Juan, Argentina</div>
+<div class="tabla-wrap"><table><thead><tr><th>Zona</th><th>HPS/día aprox.</th></tr></thead><tbody>
+<tr><td>San Juan (referencia del ejercicio)</td><td>5,5</td></tr>
+<tr><td>Mendoza</td><td>≈ 5,3</td></tr>
+<tr><td>Buenos Aires</td><td>≈ 4,5</td></tr>
+<tr><td>Patagonia (sur)</td><td>≈ 3,5–4,0</td></tr>
+</tbody></table></div>
+<p class="nota">Los valores de otras zonas son aproximados — verificar con datos de la Secretaría de Energía o atlas solar del INTI.</p>`,
+   resultado:"✓ HPS San Juan = 5,5 horas pico solar/día"},
+
+  {num:4,titulo:"Calcular la potencia total de paneles necesaria",
+   concepto:`Con la energía que los paneles deben generar y las horas de sol disponibles, podemos calcular la <strong>potencia total instalada</strong> que necesitamos. Es como calcular cuántos litros por hora debe fluir una canilla para llenar un tanque en un tiempo dado.`,
+   formula:`Potencia total (W) = Energía a generar (Wh/día) ÷ HPS (h/día)`,
+   contenido:`<div class="formula-box">Potencia total = 143.253 Wh ÷ 5,5 HPS = 26.046 W
+
+Redondeamos: 26.046 Wp necesarios (≈ 26,0 kWp)</div>
+<p class="nota">Este es el total de Watts-pico (Wp) que debe tener el campo de paneles. Los Wp son la potencia del panel en condiciones estándar de laboratorio (1.000 W/m², 25°C). En condiciones reales la potencia es algo menor, por eso ya corregimos con el factor BOS en el paso anterior.</p>`,
+   resultado:"✓ Potencia total de paneles necesaria = 26.046 Wp ≈ 26,0 kWp"},
+
+  {num:5,titulo:"Calcular la cantidad de paneles",
+   concepto:`Con la potencia total necesaria y la potencia de cada panel, calculamos cuántos paneles se necesitan. <strong>Siempre se redondea hacia arriba</strong> — un panel de menos significa que el sistema no cubre el consumo en días de sol normal.`,
+   formula:`Cantidad de paneles = Potencia total necesaria (Wp) ÷ Potencia por panel (Wp)`,
+   contenido:`<span class="tag tag-aprox">⚠ Potencia del panel elegida para el ejercicio — verificar con ficha técnica del modelo real</span>
+<div class="formula-box">Panel elegido: 500 Wp
+
+26.046 Wp ÷ 500 Wp = 52,09  →  se redondea a 53 paneles
+
+Verificación: 53 × 500 Wp = 26.500 Wp instalados ✓</div>
+<div class="aviso">⚠ Si se usara un panel de 400 Wp: 26.046 ÷ 400 = 65,1 → 66 paneles. La potencia del panel elegido cambia la cantidad de unidades pero no la potencia total instalada.</div>`,
+   resultado:"✓ Paneles solares = 53 unidades de 500 Wp"},
+
+  {num:6,titulo:"Criterio de dimensionamiento: ¿para qué calculamos los paneles?",
+   concepto:`Acá está la decisión más importante del diseño. Los paneles en un sistema off-grid tienen que hacer <strong>dos cosas</strong>: abastecer el consumo del día <em>y</em> recargar las baterías. Según qué criterio uses, la cantidad de paneles cambia drásticamente. Elegí una opción para ver la diferencia:`,
+   formula:`Potencia total (Wp) = Energía a generar (Wh/día) ÷ HPS`,
+   contenido:`
+<div style="margin-bottom:1.1rem;">
+  <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-sec);display:block;margin-bottom:6px;">Seleccioná el criterio de dimensionamiento</label>
+  <select id="criterio-pan" onchange="calcCriterio()" style="font-family:Inter,sans-serif;font-size:14px;padding:10px 14px;border:1.5px solid var(--arena);border-radius:8px;background:#fff;color:var(--texto);outline:none;width:100%;cursor:pointer;">
+    <option value="A">Opción A — Cubrir solo el consumo diario (criterio básico)</option>
+    <option value="B">Opción B — Recargar el banco completo en 1 día de sol (criterio robusto)</option>
+    <option value="C">Opción C — Recargar el banco en N días de sol (criterio intermedio)</option>
+  </select>
+</div>
+<div id="criterio-dias-wrap" style="display:none;margin-bottom:1rem;">
+  <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-sec);display:block;margin-bottom:6px;">Días de sol para recargar el banco completo</label>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <input type="range" id="criterio-dias" min="1" max="5" value="2" step="1" oninput="document.getElementById('criterio-dias-val').textContent=this.value;calcCriterio();" style="flex:1;">
+    <span id="criterio-dias-val" style="font-size:18px;font-weight:600;color:var(--verde);min-width:20px;">2</span>
+    <span style="font-size:13px;color:var(--texto-sec);">días</span>
+  </div>
+</div>
+<div id="criterio-resultado"></div>`,
+   resultado:"↑ Seleccioná un criterio arriba para ver el resultado"}
+];
+
+// ===================== ESTADO =====================
+const estado = { 1: 0, 2: 0 };
+
+function renderTab(tab) {
+  const pasos = tab === 1 ? pasosBat : pasosPan;
+  const act = estado[tab];
+  const p = pasos[act];
+
+  document.getElementById(`contenido${tab}`).innerHTML = `
+    <div class="step-card">
+      <div class="step-hdr">
+        <div class="step-num">${p.num}</div>
+        <div class="step-tit">${p.titulo}</div>
+      </div>
+      <div class="step-body">
+        <div class="concepto">${p.concepto}</div>
+        <div class="formula-label">Fórmula</div>
+        <div class="formula-box">${p.formula}</div>
+        ${p.contenido}
+        <div class="resultado">${p.resultado}</div>
+      </div>
+    </div>`;
+
+  document.getElementById(`counter${tab}`).textContent = `Paso ${act+1} de ${pasos.length}`;
+  document.getElementById(`prev${tab}`).disabled = act === 0;
+  const nb = document.getElementById(`next${tab}`);
+  nb.textContent = act === pasos.length-1 ? 'Inicio ↺' : 'Siguiente →';
+
+  const dc = document.getElementById(`dots${tab}`);
+  dc.innerHTML = pasos.map((_,i) =>
+    `<button class="dot ${i<act?'done':i===act?'active':''}" onclick="ir(${tab},${i})" title="Paso ${i+1}"></button>`
+  ).join('');
+
+  // Si es el último paso de paneles, activar el selector de criterios
+  if (tab === 2 && act === pasos.length - 1) {
+    setTimeout(calcCriterio, 50);
+  }
+}
+
+function cambiar(tab, dir) {
+  const pasos = tab===1?pasosBat:pasosPan;
+  if(dir===1 && estado[tab]===pasos.length-1) estado[tab]=0;
+  else estado[tab] = Math.max(0,Math.min(pasos.length-1,estado[tab]+dir));
+  renderTab(tab);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function ir(tab,i){estado[tab]=i;renderTab(tab);}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===================== CALCULADORA =====================
+
+// Baterías predefinidas
+const batDefault = [
+  {nombre:'LiFePO4 48V/100Ah',tec:'lifepo4',ah:100,precio:''},
+  {nombre:'Plomo-ácido 12V/200Ah',tec:'plomo',ah:200,precio:''}
+];
+const panDefault = [
+  {nombre:'Panel Monocristalino 400Wp',wp:400,precio:''},
+  {nombre:'Panel Monocristalino 500Wp',wp:500,precio:''}
+];
+
+let batRows=[], panRows=[];
+
+function initCalc(){
+  batDefault.forEach(b=>addBat(b));
+  panDefault.forEach(p=>addPan(p));
+}
+
+function addBat(data={}) {
+  const id = Date.now()+Math.random();
+  batRows.push(id);
+  const d = document.getElementById('bat-rows');
+  const div = document.createElement('div');
+  div.id='bat-'+id;
+  div.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center;';
+  div.innerHTML=`
+    <input type="text" placeholder="Ej: LiFePO4 48V/100Ah" value="${data.nombre||''}" class="bat-nom">
+    <select class="bat-tec" style="font-family:Inter,sans-serif;font-size:13px;padding:8px 10px;border:1.5px solid var(--arena);border-radius:8px;background:#fff;color:var(--texto);outline:none;">
+      <option value="lifepo4" ${data.tec==='lifepo4'?'selected':''}>LiFePO4 (DoD 80%)</option>
+      <option value="plomo" ${data.tec==='plomo'?'selected':''}>Plomo-ácido (DoD 50%)</option>
+    </select>
+    <input type="number" placeholder="Ah" value="${data.ah||''}" class="bat-ah" min="1">
+    <input type="number" placeholder="Precio $" value="${data.precio||''}" class="bat-precio" min="0">
+    <button class="btn-del" onclick="delRow('bat-${id}',${id},'bat')">×</button>`;
+  d.appendChild(div);
+}
+
+function addPan(data={}) {
+  const id = Date.now()+Math.random();
+  panRows.push(id);
+  const d = document.getElementById('pan-rows');
+  const div = document.createElement('div');
+  div.id='pan-'+id;
+  div.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center;';
+  div.innerHTML=`
+    <input type="text" placeholder="Ej: Panel 500Wp Monocristalino" value="${data.nombre||''}" class="pan-nom">
+    <input type="number" placeholder="Wp" value="${data.wp||''}" class="pan-wp" min="1">
+    <input type="number" placeholder="Precio $" value="${data.precio||''}" class="pan-precio" min="0">
+    <button class="btn-del" onclick="delRow('pan-${id}',${id},'pan')">×</button>`;
+  d.appendChild(div);
+}
+
+function delRow(elemId, id, tipo) {
+  const el = document.getElementById(elemId);
+  if(el) el.remove();
+  if(tipo==='bat') batRows=batRows.filter(r=>r!==id);
+  else panRows=panRows.filter(r=>r!==id);
+}
+
+function toggleOffgrid(){
+  const tipo = document.getElementById('c_tipo').value;
+  document.getElementById('sec-baterias').style.display = tipo==='offgrid'?'':'none';
+}
+
+function fmt(n){ return Math.ceil(n).toLocaleString('es-AR'); }
+function fmtD(n){ return n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function calcular(){
+  // Leer inputs
+  const consumoKwh = parseFloat(document.getElementById('c_consumo').value);
+  const tipo = document.getElementById('c_tipo').value;
+  const cobertura = parseFloat(document.getElementById('c_cobertura').value)/100;
+  const hps = parseFloat(document.getElementById('c_hps').value);
+  const eficInv = parseFloat(document.getElementById('c_eficInv').value)/100;
+  const bos = parseFloat(document.getElementById('c_bos').value)/100;
+  const autonomia = parseInt(document.getElementById('c_autonomia').value)||2;
+  const tension = parseInt(document.getElementById('c_tension').value)||48;
+
+  // Validación básica
+  const errs=[];
+  if(!consumoKwh||consumoKwh<=0) errs.push('Ingresá el consumo diario en kWh/día.');
+  if(!hps||hps<=0) errs.push('Las HPS deben ser mayor a 0.');
+  if(!eficInv||eficInv<=0) errs.push('La eficiencia del inversor es inválida.');
+  if(!bos||bos<=0) errs.push('El factor BOS es inválido.');
+
+  const divRes = document.getElementById('resultados');
+  const divCont = document.getElementById('res-contenido');
+
+  if(errs.length){
+    divRes.style.display='block';
+    divCont.innerHTML=`<div class="error-box">⚠ ${errs.join('<br>')}</div>`;
+    divRes.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+
+  const consumoWh = consumoKwh * 1000;
+  const consumoCubierto = consumoWh * cobertura;
+
+  // PANELES
+  const energiaPaneles = consumoCubierto / bos;
+  const potenciaTotalWp = energiaPaneles / hps;
+
+  const panDivs = document.querySelectorAll('#pan-rows > div');
+  const panOpciones = [];
+  panDivs.forEach(d=>{
+    const nom = d.querySelector('.pan-nom').value.trim()||'Panel sin nombre';
+    const wp = parseFloat(d.querySelector('.pan-wp').value)||0;
+    const precio = parseFloat(d.querySelector('.pan-precio').value)||0;
+    if(wp>0) panOpciones.push({nom,wp,precio});
+  });
+
+  // BATERÍAS
+  let batHTML='';
+  if(tipo==='offgrid'){
+    const energiaCorr = consumoWh / eficInv;
+    const energiaAuto = energiaCorr * autonomia;
+
+    const batDivs = document.querySelectorAll('#bat-rows > div');
+    const batOpciones=[];
+    batDivs.forEach(d=>{
+      const nom = d.querySelector('.bat-nom').value.trim()||'Batería sin nombre';
+      const tec = d.querySelector('.bat-tec').value;
+      const ah = parseFloat(d.querySelector('.bat-ah').value)||0;
+      const precio = parseFloat(d.querySelector('.bat-precio').value)||0;
+      if(ah>0) batOpciones.push({nom,tec,ah,precio});
+    });
+
+    if(batOpciones.length===0){
+      batHTML='<div class="error-box">⚠ Ingresá al menos una opción de batería.</div>';
+    } else {
+      const dod={lifepo4:0.80,plomo:0.50};
+      const ciclos={lifepo4:'3.000–5.000',plomo:'~500'};
+      const dodLabel={lifepo4:'80% (LiFePO4)',plomo:'50% (Plomo-ácido)'};
+
+      // Calcular para cada opción
+      const results = batOpciones.map(b=>{
+        const d = dod[b.tec];
+        const bancoWh = energiaAuto / d;
+        const bancoAh = bancoWh / tension;
+        const cant = Math.ceil(bancoAh / b.ah);
+        const totalPrecio = b.precio>0 ? cant*b.precio : null;
+        return {...b, d, bancoWh, bancoAh, cant, totalPrecio};
+      });
+
+      // Mejor precio (si todos tienen precio)
+      const conPrecio = results.filter(r=>r.totalPrecio!==null);
+      let mejorBat = null;
+      if(conPrecio.length>0) mejorBat = conPrecio.reduce((a,b)=>a.totalPrecio<b.totalPrecio?a:b);
+
+      let rows='';
+      results.forEach(r=>{
+        const esMejor = mejorBat && r===mejorBat;
+        rows+=`<tr class="${esMejor?'mejor':''}">
+          <td>${r.nom}${esMejor?'<span class="badge-mejor">Mejor precio</span>':''}</td>
+          <td>${dodLabel[r.tec]}</td>
+          <td>${ciclos[r.tec]}</td>
+          <td style="text-align:center;font-weight:600;">${r.cant}</td>
+          <td>${r.precio>0?'$'+fmtD(r.precio):'-'}</td>
+          <td style="font-weight:600;">${r.totalPrecio!==null?'$'+fmtD(r.totalPrecio):'-'}</td>
+        </tr>`;
+      });
+
+      batHTML=`
+        <div class="res-block">
+          <div class="res-titulo">🔋 Comparativa de Banco de Baterías</div>
+          <div class="aviso" style="margin-bottom:.75rem;">
+            Energía a almacenar: <strong>${fmtD(energiaAuto/1000)} kWh</strong> 
+            (${autonomia} día${autonomia>1?'s':''} de autonomía · inversor ${Math.round(eficInv*100)}%) 
+            · Tensión del banco: <strong>${tension} V</strong>
+          </div>
+          <div class="tabla-wrap">
+            <table class="comp-table">
+              <thead><tr>
+                <th>Batería</th><th>DoD</th><th>Ciclos aprox.</th>
+                <th style="text-align:center;">Cantidad</th>
+                <th>Precio unit.</th><th>Total $</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <p class="nota">⚠ Los ciclos de vida son aproximados. Siempre verificar con la ficha técnica del fabricante. Los precios son orientativos para el anteproyecto.</p>
+        </div>`;
+    }
+  }
+
+  // TABLA PANELES
+  let panHTML='';
+  if(panOpciones.length===0){
+    panHTML='<div class="error-box">⚠ Ingresá al menos una opción de panel.</div>';
+  } else {
+    const resPan = panOpciones.map(p=>{
+      const cant = Math.ceil(potenciaTotalWp/p.wp);
+      const potInst = cant*p.wp;
+      const totalPrecio = p.precio>0 ? cant*p.precio : null;
+      return {...p,cant,potInst,totalPrecio};
+    });
+
+    const conPrecioPan = resPan.filter(r=>r.totalPrecio!==null);
+    let mejorPan = null;
+    if(conPrecioPan.length>0) mejorPan = conPrecioPan.reduce((a,b)=>a.totalPrecio<b.totalPrecio?a:b);
+
+    let rowsPan='';
+    resPan.forEach(r=>{
+      const esMejor = mejorPan && r===mejorPan;
+      rowsPan+=`<tr class="${esMejor?'mejor':''}">
+        <td>${r.nom}${esMejor?'<span class="badge-mejor">Mejor precio</span>':''}</td>
+        <td style="text-align:center;font-weight:600;">${r.cant}</td>
+        <td>${fmtD(r.potInst/1000)} kWp</td>
+        <td>${r.precio>0?'$'+fmtD(r.precio):'-'}</td>
+        <td style="font-weight:600;">${r.totalPrecio!==null?'$'+fmtD(r.totalPrecio):'-'}</td>
+      </tr>`;
+    });
+
+    panHTML=`
+      <div class="res-block">
+        <div class="res-titulo">☀️ Comparativa de Paneles Solares</div>
+        <div class="aviso" style="margin-bottom:.75rem;">
+          Potencia total requerida: <strong>${fmtD(potenciaTotalWp/1000)} kWp</strong>
+          (consumo ${fmtD(consumoKwh)} kWh/día · ${Math.round(cobertura*100)}% cobertura · HPS ${hps} · BOS ${Math.round(bos*100)}%)
+        </div>
+        <div class="tabla-wrap">
+          <table class="comp-table">
+            <thead><tr>
+              <th>Panel</th>
+              <th style="text-align:center;">Cantidad</th>
+              <th>Potencia instalada</th>
+              <th>Precio unit.</th>
+              <th>Total $</th>
+            </tr></thead>
+            <tbody>${rowsPan}</tbody>
+          </table>
+        </div>
+        <p class="nota">⚠ Siempre redondear hacia arriba. Los precios son orientativos para el anteproyecto — verificar con proveedores locales.</p>
+      </div>`;
+  }
+
+  // PARÁMETROS USADOS
+  const paramsHTML=`
+    <div class="res-block" style="margin-top:.5rem;">
+      <div class="res-titulo">📋 Parámetros utilizados en el cálculo</div>
+      <div class="r-grid">
+        <div class="r-card"><div class="rl">Consumo diario</div><div class="rv">${fmtD(consumoKwh)} kWh/día</div></div>
+        <div class="r-card"><div class="rl">Tipo de sistema</div><div class="rv">${tipo==='offgrid'?'Off-Grid':'On-Grid'}</div></div>
+        <div class="r-card"><div class="rl">Cobertura solar</div><div class="rv">${Math.round(cobertura*100)}%</div></div>
+        <div class="r-card"><div class="rl">HPS de la zona</div><div class="rv">${hps} h/día</div></div>
+        <div class="r-card"><div class="rl">Eficiencia inversor</div><div class="rv">${Math.round(eficInv*100)}%</div></div>
+        <div class="r-card"><div class="rl">Factor BOS</div><div class="rv">${Math.round(bos*100)}%</div></div>
+        ${tipo==='offgrid'?`<div class="r-card"><div class="rl">Autonomía</div><div class="rv">${autonomia} día${autonomia>1?'s':''} sin sol</div></div>
+        <div class="r-card"><div class="rl">Tensión del banco</div><div class="rv">${tension} V</div></div>`:''}
+      </div>
+      <p class="nota" style="margin-top:.5rem;">Este cálculo es orientativo para anteproyecto. Los valores marcados como aproximados deben verificarse con las fichas técnicas de los equipos reales seleccionados.</p>
+    </div>`;
+
+  divCont.innerHTML = batHTML + panHTML + paramsHTML;
+  divRes.style.display='block';
+  divRes.scrollIntoView({behavior:'smooth'});
+}
+
+// ===================== CRITERIO PANELES =====================
+function calcCriterio() {
+  const criterio = document.getElementById('criterio-pan');
+  if (!criterio) return;
+  const val = criterio.value;
+
+  const wrapDias = document.getElementById('criterio-dias-wrap');
+  wrapDias.style.display = val === 'C' ? 'block' : 'none';
+
+  // Constantes del ejercicio
+  const consumoWh   = 107440;   // Wh/día
+  const bancoWh     = 302400;   // Wh totales del banco (63 × 48V × 100Ah)
+  const dod         = 0.80;     // DoD LiFePO4
+  const bos         = 0.75;     // Factor BOS
+  const hps         = 5.5;      // HPS San Juan
+  const wpPanel     = 500;      // Wp por panel
+  const bancoUtil   = bancoWh * dod; // Energía utilizable del banco = 241.920 Wh
+
+  let energiaNecesaria = 0;
+  let descripcion = '';
+  let desglose = '';
+  let advertencia = '';
+
+  if (val === 'A') {
+    energiaNecesaria = consumoWh / bos;
+    descripcion = `<strong>Opción A — Criterio básico:</strong> Los paneles se dimensionan para cubrir únicamente el consumo diario de la vivienda. No se considera el tiempo de recarga del banco de baterías.`;
+    desglose = `Energía a generar = Consumo diario ÷ BOS
+= ${consumoWh.toLocaleString('es-AR')} Wh ÷ 0,75
+= ${Math.round(energiaNecesaria).toLocaleString('es-AR')} Wh/día`;
+    advertencia = `⚠ <strong>Limitación:</strong> Si las baterías se descargan por días nublados consecutivos, los paneles no alcanzan para recargarlas en un solo día — solo reponen lo que se consume ese día. La recarga completa puede llevar varios días de buen sol.`;
+
+  } else if (val === 'B') {
+    // Paneles deben recargar banco utilizable + cubrir consumo del día, todo en 1 día
+    energiaNecesaria = (bancoUtil + consumoWh) / bos;
+    descripcion = `<strong>Opción B — Criterio robusto:</strong> Los paneles se dimensionan para recargar el banco completo <em>más</em> cubrir el consumo del día, todo en <strong>1 solo día de sol</strong>. Es el criterio más seguro pero genera el mayor número de paneles.`;
+    desglose = `Energía banco utilizable (DoD 80%) = ${bancoWh.toLocaleString('es-AR')} Wh × 0,80 = ${bancoUtil.toLocaleString('es-AR')} Wh
+Consumo del día                    = ${consumoWh.toLocaleString('es-AR')} Wh
+Total a generar                    = ${(bancoUtil + consumoWh).toLocaleString('es-AR')} Wh
+Corregido por BOS (÷ 0,75)        = ${Math.round(energiaNecesaria).toLocaleString('es-AR')} Wh`;
+    advertencia = `⚠ <strong>Consideración:</strong> Este criterio sobredimensiona el sistema para la mayoría de los días normales, cuando las baterías no llegan al límite de descarga. Es el más costoso pero el más seguro para instalaciones críticas.`;
+
+  } else {
+    const dias = parseInt(document.getElementById('criterio-dias').value) || 2;
+    // En N días de sol, cada día los paneles deben generar: (banco_util / N) + consumo_dia
+    const energiaPorDia = (bancoUtil / dias) + consumoWh;
+    energiaNecesaria = energiaPorDia / bos;
+    descripcion = `<strong>Opción C — Criterio intermedio (${dias} día${dias>1?'s':''} de recarga):</strong> Los paneles se dimensionan para recargar el banco completo en <strong>${dias} día${dias>1?'s':''} de sol</strong>, cubriendo además el consumo diario. Es el criterio más usado en proyectos reales.`;
+    desglose = `Energía banco utilizable (DoD 80%) = ${bancoUtil.toLocaleString('es-AR')} Wh
+Porción a recargar por día         = ${bancoUtil.toLocaleString('es-AR')} ÷ ${dias} = ${Math.round(bancoUtil/dias).toLocaleString('es-AR')} Wh/día
+Consumo del día                    = ${consumoWh.toLocaleString('es-AR')} Wh
+Total por día (antes de BOS)       = ${Math.round(bancoUtil/dias + consumoWh).toLocaleString('es-AR')} Wh
+Corregido por BOS (÷ 0,75)        = ${Math.round(energiaNecesaria).toLocaleString('es-AR')} Wh`;
+    advertencia = `⚠ <strong>Consideración:</strong> A ${dias} día${dias>1?'s':''} de recarga, el sistema tiene margen real para recuperarse después de días nublados sin sobredimensionar en exceso. Criterio recomendado para sistemas residenciales off-grid.`;
+  }
+
+  const potTotalWp = energiaNecesaria / hps;
+  const cantPaneles = Math.ceil(potTotalWp / wpPanel);
+  const potInstalada = cantPaneles * wpPanel;
+
+  const colores = { A: '#185FA5', B: '#9B1C1C', C: '#0F6E56' };
+  const bgColores = { A: '#E6F1FB', B: '#FEE2E2', C: '#E1F5EE' };
+  const col = colores[val];
+  const bg = bgColores[val];
+
+  document.getElementById('criterio-resultado').innerHTML = `
+    <div class="concepto" style="background:${bg};border-left-color:${col};color:#1a1a18;margin-bottom:1rem;">
+      ${descripcion}
+    </div>
+    <div class="formula-label">Desglose del cálculo</div>
+    <div class="formula-box">${desglose}
+
+Potencia total = ${Math.round(energiaNecesaria).toLocaleString('es-AR')} Wh ÷ ${hps} HPS = ${Math.round(potTotalWp).toLocaleString('es-AR')} Wp
+Cantidad       = ${Math.round(potTotalWp).toLocaleString('es-AR')} Wp ÷ ${wpPanel} Wp/panel = ${(potTotalWp/wpPanel).toFixed(2)} → <strong>${cantPaneles} paneles</strong></div>
+    <div class="aviso">${advertencia}</div>
+    <div class="r-grid">
+      <div class="r-card"><div class="rl">Energía a generar</div><div class="rv">${Math.round(energiaNecesaria/1000).toLocaleString('es-AR')} kWh/día</div></div>
+      <div class="r-card"><div class="rl">Potencia necesaria</div><div class="rv">${Math.round(potTotalWp/1000*10)/10} kWp</div></div>
+      <div class="r-card"><div class="rl">Potencia instalada</div><div class="rv">${(potInstalada/1000).toFixed(1)} kWp</div></div>
+      <div class="r-card dest span-full" style="background:${bg};border-color:${col};">
+        <div class="rl" style="color:${col};">Resultado — Opción ${val}</div>
+        <div class="rv" style="color:${col};font-size:22px;">${cantPaneles} paneles de ${wpPanel} Wp</div>
+      </div>
+    </div>
+    <div class="tabla-wrap" style="margin-top:.5rem;">
+      <table>
+        <thead><tr><th>Criterio</th><th>Enfoque</th><th style="text-align:center;">Paneles 500Wp</th><th>Potencia inst.</th></tr></thead>
+        <tbody>
+          <tr ${val==='A'?'class="hl2"':''}><td>A — Básico</td><td>Cubre consumo diario</td><td style="text-align:center;font-weight:600;">53</td><td>26,5 kWp</td></tr>
+          <tr ${val==='C'?'class="hl"':''}><td>C — Intermedio (2 días)</td><td>Recarga banco en 2 días + consumo</td><td style="text-align:center;font-weight:600;">${Math.ceil(((bancoUtil/2+consumoWh)/bos)/hps/wpPanel)}</td><td>${(Math.ceil(((bancoUtil/2+consumoWh)/bos)/hps/wpPanel)*wpPanel/1000).toFixed(1)} kWp</td></tr>
+          <tr ${val==='B'?'class="hl"':''}><td>B — Robusto</td><td>Recarga banco en 1 día + consumo</td><td style="text-align:center;font-weight:600;">170</td><td>85,0 kWp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota">La fila resaltada corresponde al criterio seleccionado. La tabla comparativa siempre muestra A, C (2 días) y B como referencia.</p>
+  `;
+
+  // Actualizar el resultado debajo de la card
+  const resDiv = document.querySelector('#tab2 .resultado');
+  if(resDiv) resDiv.textContent = `✓ Opción ${val}: ${cantPaneles} paneles de ${wpPanel} Wp = ${(potInstalada/1000).toFixed(1)} kWp instalados`;
+}
+
+// ===================== INIT =====================
+renderTab(1);
+renderTab(2);
+initCalc();
+</script>
+</body>
+</html>
